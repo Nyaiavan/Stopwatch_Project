@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STOPWATCH</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #0f172a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+}
+
+.wrapper {
+  display: flex;
+  gap: 20px;
+}
+
+/* STOPWATCH */
+.stopwatch {
+  width: 260px;
+  height: 420px;
+  background: #020617;
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.time-display {
+  text-align: center;
+  font-size: 36px;
+  margin-top: 20px;
+}
+
+/* CONTROLS */
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+button {
+  height: 45px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  background: #1e293b;
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.start { background: #22c55e; color: #000; }
+.stop { background: #ef4444; }
+.reset { background: #f59e0b; color: #000; }
+.record { background: #38bdf8; color: #000; }
+
+/* HISTORY */
+.history {
+  width: 260px;
+  height: 420px;
+  background: #020617;
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+}
+
+.history h3 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.history-list {
+  flex: 1;
+  overflow-y: auto;
+  border-top: 1px solid #1e293b;
+  border-bottom: 1px solid #1e293b;
+  padding: 5px 0;
+  font-size: 14px;
+}
+
+.history-item {
+  padding: 6px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.clear-history {
+  margin-top: 10px;
+  height: 40px;
+  border-radius: 10px;
+  background: #ef4444;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- STOPWATCH -->
+  <div class="stopwatch">
+    <div id="time" class="time-display">00:00.00</div>
+
+    <div class="controls">
+      <button id="startBtn" class="start" onclick="startStopwatch()">Start</button>
+      <button id="stopBtn" class="stop" onclick="stopStopwatch()" disabled>Stop</button>
+      <button id="resetBtn" class="reset" onclick="resetStopwatch()" disabled>Reset</button>
+    </div>
+
+    <button id="recordBtn" class="record" onclick="recordTime()" disabled>
+      Record Time
+    </button>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="history">
+    <h3>Recorded Times</h3>
+    <div id="historyList" class="history-list"></div>
+    <button class="clear-history" onclick="clearHistory()">Clear History</button>
+  </div>
+
+</div>
+
+<script>
+// DOM ELEMENTS
+const timeDisplay = document.getElementById("time");
+const historyList = document.getElementById("historyList");
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const resetBtn = document.getElementById("resetBtn");
+const recordBtn = document.getElementById("recordBtn");
+
+// STATE
+let startTime = 0;
+let elapsedTime = 0;
+let timerInterval = null;
+
+// FORMAT TIME
+function formatTime(ms) {
+  const min = Math.floor(ms / 60000);
+  const sec = Math.floor((ms % 60000) / 1000);
+  const msPart = Math.floor((ms % 1000) / 10);
+  return `${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}.${String(msPart).padStart(2,"0")}`;
+}
+
+// START
+function startStopwatch() {
+  if (timerInterval) return;
+
+  startBtn.disabled = true;
+  stopBtn.disabled = false;
+  resetBtn.disabled = true;
+  recordBtn.disabled = false;
+
+  startTime = Date.now() - elapsedTime;
+  timerInterval = setInterval(() => {
+    elapsedTime = Date.now() - startTime;
+    timeDisplay.textContent = formatTime(elapsedTime);
+  }, 10);
+}
+
+// STOP
+function stopStopwatch() {
+  if (!timerInterval) return;
+
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+  resetBtn.disabled = false;
+  recordBtn.disabled = false; // ✅ can record after stop
+}
+
+// RESET
+function resetStopwatch() {
+  elapsedTime = 0;
+  timeDisplay.textContent = "00:00.00";
+
+  startBtn.disabled = false; // ✅ start allowed after reset
+  stopBtn.disabled = true;
+  resetBtn.disabled = true;
+  recordBtn.disabled = true;
+}
+
+// RECORD TIME
+function recordTime() {
+  if (!elapsedTime) return;
+
+  const div = document.createElement("div");
+  div.className = "history-item";
+  div.textContent = formatTime(elapsedTime);
+  historyList.prepend(div);
+}
+
+// CLEAR HISTORY
+function clearHistory() {
+  historyList.innerHTML = "";
+}
+</script>
+
+</body>
+</html>
